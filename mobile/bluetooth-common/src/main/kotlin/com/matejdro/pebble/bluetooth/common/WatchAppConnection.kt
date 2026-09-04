@@ -7,6 +7,7 @@ import kotlinx.coroutines.CoroutineScope
 
 interface WatchAppConnection {
    suspend fun onPacketReceived(data: PebbleDictionary): ReceiveResult
+   suspend fun sendInteractivePackets(packets: List<PebbleDictionary>)
 
    fun interface Factory {
       fun create(

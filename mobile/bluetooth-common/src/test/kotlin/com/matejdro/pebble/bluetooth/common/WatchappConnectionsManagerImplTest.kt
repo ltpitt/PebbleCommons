@@ -161,6 +161,8 @@ class WatchappConnectionsManagerImplTest {
          receivedPackets += data
          return returnResult
       }
+
+      override suspend fun sendInteractivePackets(packets: List<PebbleDictionary>) = Unit
    }
 }
 
