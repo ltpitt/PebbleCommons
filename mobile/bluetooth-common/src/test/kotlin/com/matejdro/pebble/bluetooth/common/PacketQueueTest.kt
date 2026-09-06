@@ -146,6 +146,20 @@ class PacketQueueTest {
    }
 
    @Test
+   fun `Complete notification packet when watch app closes after delivery`() = scope.runTest {
+      sender.sendingResult = TransmissionResult.FailedDifferentAppOpen
+
+      backgroundScope.launch {
+         packetQueue.runQueue()
+      }
+
+      packetQueue.sendPacket(
+         mapOf(0u to PebbleDictionaryItem.UInt8(1u)),
+         treatDifferentAppAsSuccess = true,
+      )
+   }
+
+   @Test
    fun `Attempt exponential backoff when sending fails due to connection issues`() = scope.runTest {
       sender.sendingResult = TransmissionResult.FailedTimeout
 

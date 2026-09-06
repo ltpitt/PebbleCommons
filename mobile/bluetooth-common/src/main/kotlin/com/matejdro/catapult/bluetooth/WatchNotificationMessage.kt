@@ -2,6 +2,7 @@ package com.matejdro.catapult.bluetooth
 
 import io.rebble.pebblekit2.common.model.PebbleDictionary
 import io.rebble.pebblekit2.common.model.PebbleDictionaryItem
+import logcat.logcat
 
 sealed interface WatchNotificationMessage {
    data class Show(
@@ -18,6 +19,10 @@ sealed interface WatchNotificationMessage {
 
       fun toPacket(maxPayloadBytes: Int): PebbleDictionary {
          require(maxPayloadBytes > 0) { "Payload limit must be positive" }
+         logcat {
+            "Encoding watch notification packet: durationMs=$durationMs, " +
+               "durationWireValue=${durationMs.toUInt()}, vibration=${vibration.name}"
+         }
          val packet = mapOf(
             0u to PebbleDictionaryItem.UInt32(PACKET_SHOW_NOTIFICATION),
             2u to PebbleDictionaryItem.Text(title),

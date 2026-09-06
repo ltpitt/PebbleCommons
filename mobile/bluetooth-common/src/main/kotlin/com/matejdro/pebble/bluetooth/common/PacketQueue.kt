@@ -37,11 +37,15 @@ class PacketQueue(
     * If this coroutine is cancelled before the packet is sent, the packet will be removed from the queue.
     */
    @Suppress("SuspendFunSwallowedCancellation") // CancellationException is re-thrown after queue cleanup
-   suspend fun sendPacket(dictionary: PebbleDictionary, priority: Int = 0) {
+   suspend fun sendPacket(
+      dictionary: PebbleDictionary,
+      priority: Int = 0,
+      treatDifferentAppAsSuccess: Boolean = false,
+   ) {
       logcat { "Enqueue packet(id = ${dictionary[0u]}, priority = $priority)" }
 
       val sentNofification = CompletableDeferred<Unit>()
-      val packet = Packet(dictionary, priority, sentNofification)
+      val packet = Packet(dictionary, priority, sentNofification, treatDifferentAppAsSuccess)
 
       synchronized(queue) {
          queue.add(packet)
@@ -133,7 +137,10 @@ class PacketQueue(
                }
 
                TransmissionResult.FailedDifferentAppOpen -> {
-                  // Do not do anything. This coroutine will be cancelled any second now due to watchapp closing.
+                  if (packet.treatDifferentAppAsSuccess) {
+                     logcat { "Treating different app open as successful packet delivery" }
+                     packet.sentNofification.complete(Unit)
+                  }
                   false
                }
             }
@@ -148,6 +155,7 @@ class PacketQueue(
       val dictionary: PebbleDictionary,
       val priority: Int,
       val sentNofification: CompletableDeferred<Unit>,
+      val treatDifferentAppAsSuccess: Boolean,
    ) : Comparable<Packet> {
       override fun compareTo(other: Packet): Int {
          return -priority.compareTo(other.priority)
